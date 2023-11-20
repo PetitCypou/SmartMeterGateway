@@ -3,4 +3,4 @@
 *.settings
 /_build/
 *CMakeFiles*
-
+libraries/io6Library/

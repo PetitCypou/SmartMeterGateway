@@ -11,4 +11,11 @@ target_link_libraries(aegNetwork PRIVATE
         ETHERNET_FILES
         IOLIBRARY_FILES
         LOOPBACK_FILES
+        DHCP4_FILES
+        DHCP6_FILES
+        TIMER_FILES
+        DNS_FILES
         )
+        
+include_directories(${CMAKE_SOURCE_DIR}/port)
+include_directories(${CMAKE_SOURCE_DIR}/libraries)

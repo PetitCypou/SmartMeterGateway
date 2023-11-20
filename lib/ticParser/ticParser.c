@@ -46,17 +46,17 @@ uint8_t ticParse(struct ticFrame* TIC,char* pUartWord){
 	if(0x00==pUartWord[0]){
 		//Do nothing, empty string.
 	}
-	else if(strchr(pUartWord,0x0D) != NULL){
+	else if(0x0D==pUartWord[0]){
 		//Do nothing
 	}
-	else if(strchr(pUartWord,0x02) != NULL)				//Frame has begun !
+	else if(0x02==pUartWord[0])				//Frame has begun !
 	{
 		frameHasStarted = 1;
 
 	}
-	else if(strchr(pUartWord,0x03) != NULL)				//Frame has ended !
+	else if(0x03==pUartWord[0])				//Frame has ended !
 	{
-		if(frameHasStarted){ 		//If we were here from the beginning
+		if(frameHasStarted){ 		//If we were here from the beginning.
 			frameHasStarted = 0;
 			return 2;				//Frame is valid
 		}
