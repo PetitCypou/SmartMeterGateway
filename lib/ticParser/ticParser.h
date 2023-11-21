@@ -53,7 +53,7 @@ struct ticFrame {
 	uint8_t IMAX;					//Intensité maximale
 	uint32_t PAPP;					//Puissance apparente
 	char HHPHC;						//Code horaire Heures pleines - Heures creuses
-	char MOTDETAT[6];				//Mot d'état compteur
+	char MOTDETAT[7];				//Mot d'état compteur
 };
 
 //FUNCTION PROTOTYPES

@@ -9,14 +9,15 @@ target_link_libraries(${TARGET_NAME} PRIVATE
         hardware_spi
         hardware_dma
         ETHERNET_FILES
+        FREERTOS_FILES
         IOLIBRARY_FILES
         LOOPBACK_FILES
         TIMER_FILES
         ticParser
-        aegNetwork
+        smgNetwork
         ticConstructor
-        aegUart
-        aegDma
+        smgUart
+        smgDma
         )
         
 include_directories(${CMAKE_SOURCE_DIR}/lib)

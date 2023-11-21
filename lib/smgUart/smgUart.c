@@ -5,9 +5,9 @@
  *      Author: cyp
  */
 
-#include "aegUart.h"
 #include <hardware/gpio.h>
 #include <hardware/uart.h>
+#include "smgUart.h"
 
 //FUNCTION PROTOTYPES
 void ticUart_Init(uart_inst_t* UART_ID, uint BAUD_RATE, uint DATA_BITS, uint STOP_BITS, uart_parity_t PARITY, uint UART_TX_PIN, uint UART_RX_PIN);

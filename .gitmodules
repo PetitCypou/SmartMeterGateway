@@ -10,4 +10,7 @@
 	url = https://github.com/raspberrypi/pico-extras.git
 [submodule "libraries/io6Library"]
 	path = libraries/io6Library
-	url = https://github.com/Wiznet/io6Library.git
+	url = git@github.com:Wiznet/io6Library.git
+[submodule "libraries/FreeRTOS-Kernel"]
+	path = libraries/FreeRTOS-Kernel
+	url = https://github.com/FreeRTOS/FreeRTOS-Kernel.git

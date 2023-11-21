@@ -40,6 +40,11 @@ message(STATUS "WIZNET_CHIP = ${WIZNET_CHIP}")
 # Set the project root directory if it's not already defined, as may happen if
 # the tests folder is included directly by a parent project, without including
 # the top level CMakeLists.txt.
+if(NOT DEFINED FREERTOS_DIR)
+    set(FREERTOS_DIR ${CMAKE_SOURCE_DIR}/libraries/FreeRTOS-Kernel)
+    message(STATUS "FREERTOS_DIR = ${FREERTOS_DIR}")
+endif()
+
 if(NOT DEFINED WIZNET_DIR)
     set(WIZNET_DIR ${CMAKE_SOURCE_DIR}/libraries/io6Library)
     message(STATUS "WIZNET_DIR = ${WIZNET_DIR}")

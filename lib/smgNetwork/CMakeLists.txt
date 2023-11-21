@@ -1,10 +1,10 @@
 add_library(
-	aegNetwork
-	aegNetwork.h
-	aegNetwork.c
+	smgNetwork
+	smgNetwork.h
+	smgNetwork.c
 	)
 	
-target_link_libraries(aegNetwork PRIVATE
+target_link_libraries(smgNetwork PRIVATE
         pico_stdlib
         hardware_spi
         hardware_dma

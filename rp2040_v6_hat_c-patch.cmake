@@ -11,12 +11,21 @@ endif()
 message("RP2040-v6-HAT-C patch utils found")
 
 set(RP2040_V6_HAT_C_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+set(FREERTOS_KERNEL_SRC_DIR "${RP2040_V6_HAT_C_SRC_DIR}/libraries/FreeRTOS-Kernel")
 set(IO6LIBRARY_SRC_DIR "${RP2040_V6_HAT_C_SRC_DIR}/libraries/io6Library")
 set(MBEDTLS_SRC_DIR "${RP2040_V6_HAT_C_SRC_DIR}/libraries/mbedtls")
 set(PICO_EXTRAS_SRC_DIR "${RP2040_V6_HAT_C_SRC_DIR}/libraries/pico-extras")
 set(PICO_SDK_SRC_DIR "${RP2040_V6_HAT_C_SRC_DIR}/libraries/pico-sdk")
 set(PICO_SDK_TINYUSB_SRC_DIR "${RP2040_V6_HAT_C_SRC_DIR}/libraries/lib/tinyusb")
 set(RP2040_HAT_C_PATCH_DIR "${RP2040_V6_HAT_C_SRC_DIR}/patches")
+
+# Delete untracked files in FreeRTOS-Kernel
+if(EXISTS "${FREERTOS_KERNEL_SRC_DIR}/.git")
+	message("cleaning FreeRTOS-Kernel...")
+	execute_process(COMMAND ${GIT_EXECUTABLE} -C ${FREERTOS_KERNEL_SRC_DIR} clean -fdx)
+	execute_process(COMMAND ${GIT_EXECUTABLE} -C ${FREERTOS_KERNEL_SRC_DIR} reset --hard)
+	message("FreeRTOS-Kernel cleaned")
+endif()
 
 # Delete untracked files in io6Library
 if(EXISTS "${IO6LIBRARY_SRC_DIR}/.git")

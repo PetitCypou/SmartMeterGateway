@@ -1,10 +1,10 @@
 add_library(
-	aegUart
-	aegUart.h
-	aegUart.c
+	smgUart
+	smgUart.h
+	smgUart.c
 	)
 
-target_link_libraries(aegUart PRIVATE
+target_link_libraries(smgUart PRIVATE
     pico_stdlib
     hardware_uart
     hardware_gpio

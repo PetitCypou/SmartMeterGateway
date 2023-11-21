@@ -17,9 +17,9 @@
 #endif
 
 //FUNCTION PROTOTYPES
-uint8_t aegNetwork_Init(uint32_t clkKhz);
-uint8_t aegNetwork_Connect(uint8_t* destIp, uint16_t destPort);
-int8_t aegNetwork_Send(char* buf, uint8_t* destip, uint16_t destPort);
+uint8_t smgNetwork_Init(uint32_t clkKhz);
+uint8_t smgNetwork_Connect(uint8_t* destIp, uint16_t destPort);
+int8_t smgNetwork_Send(char* buf, uint8_t* destip, uint16_t destPort);
 
 /* DHCP */
 static void wizchip_dhcp4_init(void);

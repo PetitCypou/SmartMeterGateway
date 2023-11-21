@@ -1,11 +1,14 @@
+
 /*
  * ticNetwork.c
  *
  *  Created on: 3 nov. 2023
  *      Author: cyp
  */
+#define DEBUG
 
-#include "aegNetwork.h"
+#include "smgNetwork.h"
+
 #include <dhcpv4.h>
 #include "socket.h"
 #include "wizchip_conf.h"
@@ -37,9 +40,9 @@ static uint8_t g_ethernet_buf[ETHERNET_BUF_MAX_SIZE] = {
 static wiz_NetInfo netInfo =
     {
         .mac = {0x00, 0x08, 0xDC, 0x01, 0x01, 0x01}, // MAC address
-        .ip = {192, 168, 11, 5},                     // IP address
-        .sn = {255, 255, 255, 0},                    // Subnet Mask
-        .gw = {192, 168, 11, 1},                     // Gateway
+        .ip = {0, 0, 0, 0},                     // IP address
+        .sn = {0, 0, 0, 0},                    // Subnet Mask
+        .gw = {0, 0, 0, 0},                     // Gateway
         .dns = {8, 8, 8, 8},                         // DNS server
         .lla = {0xfe, 0x80, 0x00, 0x00,
                 0x00, 0x00, 0x00, 0x00,
@@ -69,9 +72,9 @@ static wiz_NetInfo netInfo =
 
 
 //FUNCTION PROTOTYPES
-uint8_t aegNetwork_Init(uint32_t clkKhz);
-uint8_t aegNetwork_Connect(uint8_t* destIp, uint16_t destPort);
-int8_t aegNetwork_Send(char* buf, uint8_t* destIp, uint16_t destPort);
+uint8_t smgNetwork_Init(uint32_t clkKhz);
+uint8_t smgNetwork_Connect(uint8_t* destIp, uint16_t destPort);
+int8_t smgNetwork_Send(char* buf, uint8_t* destIp, uint16_t destPort);
 
 /* DHCP */
 static void wizchip_dhcp4_init(void);
@@ -117,7 +120,7 @@ static void set_clock_khz(int PLL_SYS_KHZ)
 }
 
 /*
- * Function:  aegNetwork_Connect
+ * Function:  smgNetwork_Connect
  * --------------------
  * Opens a socket to a specific port to prepare for data transfer
  *
@@ -126,7 +129,7 @@ static void set_clock_khz(int PLL_SYS_KHZ)
  *
  *  returns : Socket state. SOCK_OK = 1;
  */
-uint8_t aegNetwork_Connect(uint8_t* destIp, uint16_t destPort){
+uint8_t smgNetwork_Connect(uint8_t* destIp, uint16_t destPort){
 	uint8_t status,ret;
 
 	getsockopt(SOCKET_TCP_CLIENT,SO_STATUS,&status);
@@ -148,14 +151,14 @@ uint8_t aegNetwork_Connect(uint8_t* destIp, uint16_t destPort){
 }
 
 /*
- * Function:  aegNetwork_Init
+ * Function:  smgNetwork_Init
  * --------------------
  * La fonction Init initialise la puce W6100 pour une communication ethernet.
  *
  *  clkKhz: Cadence de l'horloge en kHz.
  *  netInfo: Configuration réseau à appliquer.
  */
-uint8_t aegNetwork_Init(uint32_t clkKhz){
+uint8_t smgNetwork_Init(uint32_t clkKhz){
 	uint8_t retval;
 	uint8_t dhcpMaxTry = 100;
 	uint8_t dhcpTries = 0;
@@ -174,68 +177,69 @@ uint8_t aegNetwork_Init(uint32_t clkKhz){
 	wizchip_1ms_timer_initialize(repeating_timer_callback);
 	network_initialize(netInfo);
 
-	if (netInfo.ipmode & NETINFO_DHCP_V4) // DHCP
+	if(netInfo.ipmode & NETINFO_DHCP_V4) // DHCP
 	{
 	wizchip_dhcp4_init();
 	}
     //retval = DHCPv4_run();
 
-    if (netInfo.ipmode & NETINFO_DHCP_V4)
-       {
-    	while(g_dhcp_get_ip_flag == 0 && dhcpTries<=dhcpMaxTry){
-           retval = DHCPv4_run();
+	if(netInfo.ipmode & NETINFO_DHCP_V4)
+		{
+		while(g_dhcp_get_ip_flag == 0 && dhcpTries<=dhcpMaxTry){
+			retval = DHCPv4_run();
 
-           if (retval == DHCP_IPV4_LEASED)
-           {
-               if (g_dhcp_get_ip_flag == 0)
-               {
-                   printf(" DHCP success\n");
+			if(retval == DHCP_IPV4_LEASED)
+			{
+				if(g_dhcp_get_ip_flag == 0)
+				{
+					#ifdef DEBUG
+						printf(" DHCP success\n");
+					#endif
+					g_dhcp_get_ip_flag = 1;
+				}
+			}
+			else if (retval == DHCPV4_FAILED)
+			{
+				g_dhcp_get_ip_flag = 0;
+				dhcpTries++;
 
-                   g_dhcp_get_ip_flag = 1;
-               }
-           }
-           else if (retval == DHCPV4_FAILED)
-           {
-               g_dhcp_get_ip_flag = 0;
-               dhcpTries++;
+				if(dhcpTries <= dhcpMaxTry)
+				{
+					#ifdef DEBUG
+						printf(" DHCP timeout occurred and retry %d\n", dhcpTries);
+					#endif
+				}
+			}
 
-               if (dhcpTries <= dhcpMaxTry)
-               {
-                   printf(" DHCP timeout occurred and retry %d\n", dhcpTries);
-               }
-           }
+			if(dhcpTries > dhcpMaxTry)
+			{
+				#ifdef DEBUG
+					printf(" DHCP failed\n");
+				#endif
+					DHCPv4_stop();
+			}
 
-           if (dhcpTries > dhcpMaxTry)
-           {
-               printf(" DHCP failed\n");
-
-               DHCPv4_stop();
-
-               //while (1)
-               //    ;
-           }
-
-           if(g_dhcp_get_ip_flag == 0)
-           {
-               wizchip_delay_ms(1000); // wait for 1 second
-           }
-    	}
+			if(g_dhcp_get_ip_flag == 0)
+			{
+				wizchip_delay_ms(1000); // wait for 1 second
+			}
+		}
 	}
 
-    if(g_dhcp_get_ip_flag == 1)
-    {
-       return 1;
-    }
-    else
-    {
-       return 0;
-    }
+	if(g_dhcp_get_ip_flag == 1)
+	{
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
 }
 
 
 
 /*
- * Function:  aegNetwork_Send
+ * Function:  smgNetwork_Send
  * --------------------
  * La fonction Send envoye une chaîne de caractères à un serveur TCP particulier.
  *
@@ -246,7 +250,7 @@ uint8_t aegNetwork_Init(uint32_t clkKhz){
  *  returns: L'état de la socket TCP.
  *  		1 : La socket est ouverte et fonctionnelle.
  */
-int8_t aegNetwork_Send(char* buf, uint8_t* destIp, uint16_t destPort)
+int8_t smgNetwork_Send(char* buf, uint8_t* destIp, uint16_t destPort)
 {
 
     int32_t ret; // return value for SOCK_ERRORs
@@ -346,10 +350,11 @@ int8_t aegNetwork_Send(char* buf, uint8_t* destIp, uint16_t destPort)
 /* DHCP */
 static void wizchip_dhcp4_init(void)
 {
-    printf(" DHCP client running\n");
+	#ifdef DEBUG
+    	printf(" DHCP client running\n");
+	#endif
 
     DHCPv4_init(SOCKET_DHCP, g_ethernet_buf);
-
     reg_dhcpv4_cbfunc(wizchip_dhcp4_assign, wizchip_dhcp4_assign, wizchip_dhcp4_conflict);
 }
 
@@ -363,14 +368,18 @@ static void wizchip_dhcp4_assign(void)
     /* Network initialize */
     network_initialize(netInfo); // apply from DHCP
 
-    print_network_information(netInfo);
-    printf(" DHCP leased time : %ld seconds\n", getDHCPv4Leasetime());
+	#ifdef DEBUG
+    	print_network_information(netInfo);
+    	printf(" DHCP leased time : %ld seconds\n", getDHCPv4Leasetime());
+	#endif
 }
 
 static void wizchip_dhcp4_conflict(void)
 {
-    printf(" Conflict IP from DHCP\n");
 
+	#ifdef DEBUG
+		printf(" Conflict IP from DHCP\n");
+	#endif
     // halt or reset or any...
     while (1)
         ; // this example is halt.

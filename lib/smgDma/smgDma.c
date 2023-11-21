@@ -1,14 +1,14 @@
 /*
- * aegDma.c
+ * smgDma.c
  *
  *  Created on: 14 nov. 2023
  *      Author: cyp
  */
 
+#include "smgDma.h"
+#include "hardware/uart.h"
 #include "hardware/dma.h"
 #include "hardware/irq.h"
-#include "hardware/uart.h"
-#include "aegDma.h"
 #include "string.h"
 #include "stdio.h"
 
@@ -17,7 +17,7 @@ int data_chan;
 
 //FUNCTION PROTOTYPES
 void dma_handler();
-void aegDma_Init(uart_inst_t* UART_ID, struct ringBuf* pRING);
+void smgDma_Init(uart_inst_t* UART_ID, struct ringBuf* pRING);
 
 
 /*
@@ -37,7 +37,7 @@ void dma_handler() {
 }
 
 /*
- * Function:  aegDma_Init
+ * Function:  smgDma_Init
  * --------------------
  * La fonction Init initialise un canal DMA pour qu'il écrive le contenu d'un canal uart donné dans un buffer circulaire donné.
  *
@@ -46,7 +46,7 @@ void dma_handler() {
  *
  *  returns: void
  */
-void aegDma_Init(uart_inst_t* UART_ID, struct ringBuf* pRING){
+void smgDma_Init(uart_inst_t* UART_ID, struct ringBuf* pRING){
 	RING = pRING;										//On se crée un pointeur local du buffer circulaire pour pouvoir l'éditer.
 	RING->pRead = &RING->buf[0];						//On initialise le pointeur de lecture.
 
@@ -79,7 +79,7 @@ void aegDma_Init(uart_inst_t* UART_ID, struct ringBuf* pRING){
 
 
 /*
- * Function:  aegDma_Fetch
+ * Function:  smgDma_Fetch
  * --------------------
  * La fonction Fetch détecte les mots présents dans un buffer circulaire à partir des caractères spéciaux.
  * Il déclenche dès qu'il vois un caractère spécial (<=0x0D) et fournis tous les caractères précédents ainsi que le spécial.
@@ -91,11 +91,10 @@ void aegDma_Init(uart_inst_t* UART_ID, struct ringBuf* pRING){
  *  		 1 si il y a un mot complet qui n'est pas scindé
  *  		 2 si il y a un mot complet qui est scindé par le buffer circulaire et a dû être reconstruit.
  */
-uint8_t aegDma_Fetch(char* patchBuf){ //Return the type of info, and edits the string
+uint8_t smgDma_Fetch(char* patchBuf){ //Return the type of info, and edits the string
 
 	char* a = RING->pRead;			//Adresse de recherche. (TAIL -> HEAD)
 	uint8_t overFlow = 0;			//Indicateur d'Overflow : Le mot qu'on cherche est scindé par le buffer.
-	char DEBUG[256];
 
 	while ((int) a != *RING->pWrite){											//Tant qu'on a pas rattrapé la tête,
 

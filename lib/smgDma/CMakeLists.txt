@@ -1,10 +1,10 @@
 add_library(
-	aegDma
-	aegDma.h
-	aegDma.c
+	smgDma
+	smgDma.h
+	smgDma.c
 	)
 	
-target_link_libraries(aegDma PRIVATE
+target_link_libraries(smgDma PRIVATE
     pico_stdlib
     hardware_uart
     hardware_gpio

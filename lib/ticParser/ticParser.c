@@ -102,6 +102,7 @@ uint8_t ticParse(struct ticFrame* TIC,char* pUartWord){
 		}
 		else if(strstr(pUartWord,"MOTDETAT") != NULL){
 			memcpy(TIC->MOTDETAT,pUartWord+9,6);
+			memset(TIC->MOTDETAT+6,0,1); //String null termination.
 		}
 	}
 	else {
