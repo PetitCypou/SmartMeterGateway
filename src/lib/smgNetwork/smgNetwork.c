@@ -22,12 +22,10 @@
 /* Buffer */
 #define ETHERNET_BUF_MAX_SIZE (1024 * 2)
 /* Socket */
-#define SOCKET_TCP_CLIENT 1
 #define SOCKET_DHCP 6
 /* Max retry count*/
 #define RETRY_CNT   10000
 
-static uint16_t any_port = 	50000;
 static uint8_t sock_state[8] = {0,};
 
 static uint8_t g_ethernet_buf[ETHERNET_BUF_MAX_SIZE] = {
@@ -73,8 +71,8 @@ static wiz_NetInfo netInfo =
 
 //FUNCTION PROTOTYPES
 uint8_t smgNetwork_Init(uint32_t clkKhz);
-uint8_t smgNetwork_Connect(uint8_t* destIp, uint16_t destPort);
-int8_t smgNetwork_Send(char* buf, uint8_t* destIp, uint16_t destPort);
+uint8_t smgNetwork_Connect(uint8_t sn, uint16_t sendPort, uint8_t* destIp, uint16_t destPort);
+int8_t smgNetwork_Send(uint8_t sn, uint16_t sendPort, uint8_t* destIp, uint16_t destPort,char* buf);
 
 /* DHCP */
 static void wizchip_dhcp4_init(void);
@@ -129,22 +127,22 @@ static void set_clock_khz(int PLL_SYS_KHZ)
  *
  *  returns : Socket state. SOCK_OK = 1;
  */
-uint8_t smgNetwork_Connect(uint8_t* destIp, uint16_t destPort){
+uint8_t smgNetwork_Connect(uint8_t sn, uint16_t sendPort, uint8_t* destIp, uint16_t destPort){
 	uint8_t status,ret;
 
-	getsockopt(SOCKET_TCP_CLIENT,SO_STATUS,&status);
+	getsockopt(sn,SO_STATUS,&status);
 	if(SOCK_CLOSED == status){
-	    ret = socket(SOCKET_TCP_CLIENT, Sn_MR_TCP4, any_port++, SOCK_IO_NONBLOCK);
+	    ret = socket(sn, Sn_MR_TCP4, sendPort++, SOCK_IO_NONBLOCK);
 
-	    if(ret != SOCKET_TCP_CLIENT){    /* reinitialize the socket */
+	    if(ret != sn){    /* reinitialize the socket */
 	        return ret;
 	    }
 
 	}
 
-    getsockopt(SOCKET_TCP_CLIENT,SO_STATUS,&status);
+    getsockopt(sn,SO_STATUS,&status);
     if(SOCK_INIT == status){
-		ret = connect(SOCKET_TCP_CLIENT, destIp, destPort, 4); /* Try to connect to TCP server(Socket, DestIP, DestPort) */
+		ret = connect(sn, destIp, destPort, 4); /* Try to connect to TCP server(Socket, DestIP, DestPort) */
 
 	}
     return ret;
@@ -250,7 +248,7 @@ uint8_t smgNetwork_Init(uint32_t clkKhz){
  *  returns: L'état de la socket TCP.
  *  		1 : La socket est ouverte et fonctionnelle.
  */
-int8_t smgNetwork_Send(char* buf, uint8_t* destIp, uint16_t destPort)
+int8_t smgNetwork_Send(uint8_t sn,uint16_t sendPort, uint8_t* destIp, uint16_t destPort,char* buf)
 {
 
     int32_t ret; // return value for SOCK_ERRORs
@@ -264,30 +262,30 @@ int8_t smgNetwork_Send(char* buf, uint8_t* destIp, uint16_t destPort)
 
     // Socket Status Transitions
     // Check the W6100 Socket n status register (Sn_SR, The 'Sn_SR' controlled by Sn_CR command or Packet send/recv status)
-    getsockopt(SOCKET_TCP_CLIENT,SO_STATUS,&status);
+    getsockopt(sn,SO_STATUS,&status);
     switch(status)
     {
     case SOCK_ESTABLISHED :
-        ctlsocket(SOCKET_TCP_CLIENT,CS_GET_INTERRUPT,&inter);
+        ctlsocket(sn,CS_GET_INTERRUPT,&inter);
         if(inter & Sn_IR_CON)	// Socket n interrupt register mask; TCP CON interrupt = connection with peer is successful
         {
             arg_tmp8 = Sn_IR_CON;
-            ctlsocket(SOCKET_TCP_CLIENT,CS_CLR_INTERRUPT,&arg_tmp8);// this interrupt should be write the bit cleared to '1'
+            ctlsocket(sn,CS_CLR_INTERRUPT,&arg_tmp8);// this interrupt should be write the bit cleared to '1'
         }
 
         //////////////////////////////////////////////////////////////////////////////////////////////
         // Data Transaction Parts; Handle the [data receive and send] process
         //////////////////////////////////////////////////////////////////////////////////////////////
-        getsockopt(SOCKET_TCP_CLIENT, SO_RECVBUF, &received_size);
+        getsockopt(sn, SO_RECVBUF, &received_size);
 
         received_size = strlen(buf);
             // Data sentsize control
             while(received_size != sentsize)
             {
-                ret = send(SOCKET_TCP_CLIENT, buf+sentsize, received_size-sentsize); // Data send process (User's buffer -> Destination through H/W Tx socket buffer)
+                ret = send(sn, buf+sentsize, received_size-sentsize); // Data send process (User's buffer -> Destination through H/W Tx socket buffer)
                 if(ret < 0) // Send Error occurred (sent data length < 0)
                 {
-                    close(SOCKET_TCP_CLIENT); // socket close
+                    close(sn); // socket close
                     return ret;
                 }
                 sentsize += ret; // Don't care SOCKERR_BUSY, because it is zero.
@@ -297,12 +295,12 @@ int8_t smgNetwork_Send(char* buf, uint8_t* destIp, uint16_t destPort)
         break;
 
     case SOCK_CLOSE_WAIT :
-        getsockopt(SOCKET_TCP_CLIENT, SO_RECVBUF, &received_size);
+        getsockopt(sn, SO_RECVBUF, &received_size);
 
-        if((received_size = getSn_RX_RSR(SOCKET_TCP_CLIENT)) > 0) // Sn_RX_RSR: Socket n Received Size Register, Receiving data length
+        if((received_size = getSn_RX_RSR(sn)) > 0) // Sn_RX_RSR: Socket n Received Size Register, Receiving data length
         {
             if(received_size > DATA_BUF_SIZE) received_size = DATA_BUF_SIZE; // DATA_BUF_SIZE means user defined buffer size (array)
-            ret = recv(SOCKET_TCP_CLIENT, buf, received_size); // Data Receive process (H/W Rx socket buffer -> User's buffer)
+            ret = recv(sn, buf, received_size); // Data Receive process (H/W Rx socket buffer -> User's buffer)
 
             if(ret <= 0) return ret; // If the received data length <= 0, receive failed and process end
             received_size = (uint16_t) ret;
@@ -311,34 +309,34 @@ int8_t smgNetwork_Send(char* buf, uint8_t* destIp, uint16_t destPort)
             // Data sentsize control
             while(received_size != sentsize)
             {
-                ret = send(SOCKET_TCP_CLIENT, buf+sentsize, received_size-sentsize); // Data send process (User's buffer -> Destination through H/W Tx socket buffer)
+                ret = send(sn, buf+sentsize, received_size-sentsize); // Data send process (User's buffer -> Destination through H/W Tx socket buffer)
                 if(ret < 0) // Send Error occurred (sent data length < 0)
                 {
-                    close(SOCKET_TCP_CLIENT); // socket close
+                    close(sn); // socket close
                     return ret;
                 }
                 sentsize += ret; // Don't care SOCKERR_BUSY, because it is zero.
             }
         }
-        if((ret=disconnect(SOCKET_TCP_CLIENT)) != SOCK_OK) return ret;
+        if((ret=disconnect(sn)) != SOCK_OK) return ret;
         break;
 
     case SOCK_INIT :
 
-        ret = connect(SOCKET_TCP_CLIENT, destIp, destPort, 4); /* Try to connect to TCP server(Socket, DestIP, DestPort) */
+        ret = connect(sn, destIp, destPort, 4); /* Try to connect to TCP server(Socket, DestIP, DestPort) */
 
         if( ret != SOCK_OK) return ret;	//	Try to TCP connect to the TCP server (destination)
         break;
 
     case SOCK_CLOSED:
 
-        tmp = socket(SOCKET_TCP_CLIENT, Sn_MR_TCP4, any_port++, SOCK_IO_NONBLOCK);
+        tmp = socket(sn, Sn_MR_TCP4, sendPort++, SOCK_IO_NONBLOCK);
 
 
-        if(tmp != SOCKET_TCP_CLIENT){    /* reinitialize the socket */
+        if(tmp != sn){    /* reinitialize the socket */
             return SOCKERR_SOCKNUM;
         }
-        sock_state[SOCKET_TCP_CLIENT] = 1;
+        sock_state[sn] = 1;
 
         break;
     default:

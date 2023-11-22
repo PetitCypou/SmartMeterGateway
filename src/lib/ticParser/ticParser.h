@@ -33,7 +33,7 @@ enum ePTEC{
 };
 
 enum eDEMAIN{
-	NONE,
+	NONE_,
 	BLEU,
 	BLANC,
 	ROUGE
@@ -57,9 +57,9 @@ struct ticFrame {
 };
 
 //FUNCTION PROTOTYPES
-void on_uart_rx();
-void ticParser_init();
-uint8_t ticCheck(uint8_t* word, uint8_t len);
 uint8_t ticParse(struct ticFrame* TIC,char* pUartWord);
+uint8_t checkSum(char* word);
+void ticSetAlarm(void);
+uint8_t ticGetAlarm(void);
 
 #endif /* TICPARSER_H_ */

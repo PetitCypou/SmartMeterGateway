@@ -18,4 +18,3 @@ target_link_libraries(smgNetwork PRIVATE
         )
         
 include_directories(${CMAKE_SOURCE_DIR}/port)
-include_directories(${CMAKE_SOURCE_DIR}/libraries)

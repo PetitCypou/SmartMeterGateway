@@ -11,12 +11,12 @@ endif()
 message("RP2040-v6-HAT-C patch utils found")
 
 set(RP2040_V6_HAT_C_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
-set(FREERTOS_KERNEL_SRC_DIR "${RP2040_V6_HAT_C_SRC_DIR}/libraries/FreeRTOS-Kernel")
-set(IO6LIBRARY_SRC_DIR "${RP2040_V6_HAT_C_SRC_DIR}/libraries/io6Library")
-set(MBEDTLS_SRC_DIR "${RP2040_V6_HAT_C_SRC_DIR}/libraries/mbedtls")
-set(PICO_EXTRAS_SRC_DIR "${RP2040_V6_HAT_C_SRC_DIR}/libraries/pico-extras")
-set(PICO_SDK_SRC_DIR "${RP2040_V6_HAT_C_SRC_DIR}/libraries/pico-sdk")
-set(PICO_SDK_TINYUSB_SRC_DIR "${RP2040_V6_HAT_C_SRC_DIR}/libraries/lib/tinyusb")
+set(FREERTOS_KERNEL_SRC_DIR "${RP2040_V6_HAT_C_SRC_DIR}/third_party/FreeRTOS-Kernel")
+set(IO6LIBRARY_SRC_DIR "${RP2040_V6_HAT_C_SRC_DIR}/third_party/io6Library")
+set(MBEDTLS_SRC_DIR "${RP2040_V6_HAT_C_SRC_DIR}/third_party/mbedtls")
+set(PICO_EXTRAS_SRC_DIR "${RP2040_V6_HAT_C_SRC_DIR}/third_party/pico-extras")
+set(PICO_SDK_SRC_DIR "${RP2040_V6_HAT_C_SRC_DIR}/third_party/pico-sdk")
+set(PICO_SDK_TINYUSB_SRC_DIR "${RP2040_V6_HAT_C_SRC_DIR}/third_party/lib/tinyusb")
 set(RP2040_HAT_C_PATCH_DIR "${RP2040_V6_HAT_C_SRC_DIR}/patches")
 
 # Delete untracked files in FreeRTOS-Kernel

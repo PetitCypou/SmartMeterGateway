@@ -8,7 +8,7 @@
 #ifndef TICCONSTRUCTOR_H_
 #define TICCONSTRUCTOR_H_
 
-#include "ticParser/ticParser.h"
+#include "../ticParser/ticParser.h"
 
 //FUNCTION PROTOTYPES
 void ticConstruct(char* Frame, struct ticFrame TIC);

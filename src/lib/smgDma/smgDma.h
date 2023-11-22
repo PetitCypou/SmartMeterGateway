@@ -21,5 +21,6 @@ struct ringBuf {
 void dma_handler();
 void smgDma_Init(uart_inst_t* UART_ID, struct ringBuf* pRING);
 uint8_t smgDma_Fetch(char* patchBuf);
+uint8_t smgDma_Find(char* patchBuf);
 
 #endif /* SMGDMA_H_ */

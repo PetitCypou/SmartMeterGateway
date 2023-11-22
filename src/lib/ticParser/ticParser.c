@@ -14,7 +14,11 @@
 //FUNCTION PROTOTYPES
 uint8_t ticParse(struct ticFrame* TIC,char* pUartWord);
 uint8_t checkSum(char* word);
+void ticSetAlarm(void);
+uint8_t ticGetAlarm(void);
 
+uint8_t ALARM;
+uint8_t foundAlarm;
 
 /*
  * Function:  ticParse
@@ -51,12 +55,17 @@ uint8_t ticParse(struct ticFrame* TIC,char* pUartWord){
 	}
 	else if(0x02==pUartWord[0])				//Frame has begun !
 	{
+		foundAlarm = 0;
 		frameHasStarted = 1;
 
 	}
 	else if(0x03==pUartWord[0])				//Frame has ended !
 	{
 		if(frameHasStarted){ 		//If we were here from the beginning.
+			if(foundAlarm == 0){
+				TIC->ADPS = 0;
+				ALARM = 0;
+			}
 			frameHasStarted = 0;
 			return 2;				//Frame is valid
 		}
@@ -104,6 +113,12 @@ uint8_t ticParse(struct ticFrame* TIC,char* pUartWord){
 			memcpy(TIC->MOTDETAT,pUartWord+9,6);
 			memset(TIC->MOTDETAT+6,0,1); //String null termination.
 		}
+		else if(strstr(pUartWord,"ADPS") != NULL){
+			TIC->ADPS = atoi((pUartWord+5));
+			ALARM = 1;
+			foundAlarm = 1;
+		}
+
 	}
 	else {
 		frameHasStarted = 0; //Invalidate frame because we received a corrupted register or command.
@@ -143,4 +158,12 @@ uint8_t checkSum(char* pUartWord){
 	else{
 		return 0;
 	}
+}
+
+void ticSetAlarm(void){
+	ALARM = 1;
+}
+
+uint8_t ticGetAlarm(void){
+	return ALARM;
 }

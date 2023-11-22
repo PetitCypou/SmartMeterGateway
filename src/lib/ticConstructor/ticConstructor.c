@@ -6,7 +6,7 @@
 
 #include "ticConstructor.h"
 #include <stdio.h>
-#include "ticParser/ticParser.h"
+#include "../ticParser/ticParser.h"
 
 //FUNCTION PROTOTYPES
 void ticConstruct(char* frame, struct ticFrame TAC);

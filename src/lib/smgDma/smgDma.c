@@ -18,7 +18,8 @@ int data_chan;
 //FUNCTION PROTOTYPES
 void dma_handler();
 void smgDma_Init(uart_inst_t* UART_ID, struct ringBuf* pRING);
-
+uint8_t smgDma_Fetch(char* patchBuf);
+uint8_t smgDma_Find(char* patchBuf);
 
 /*
  * Function:  dma_handler
@@ -91,7 +92,7 @@ void smgDma_Init(uart_inst_t* UART_ID, struct ringBuf* pRING){
  *  		 1 si il y a un mot complet qui n'est pas scindé
  *  		 2 si il y a un mot complet qui est scindé par le buffer circulaire et a dû être reconstruit.
  */
-uint8_t smgDma_Fetch(char* patchBuf){ //Return the type of info, and edits the string
+uint8_t smgDma_Fetch(char* patchBuf){
 
 	char* a = RING->pRead;			//Adresse de recherche. (TAIL -> HEAD)
 	uint8_t overFlow = 0;			//Indicateur d'Overflow : Le mot qu'on cherche est scindé par le buffer.
@@ -131,6 +132,42 @@ uint8_t smgDma_Fetch(char* patchBuf){ //Return the type of info, and edits the s
 
 	}
 	return 0;
+}
 
+
+/*
+ * Function:  smgDma_Fing
+ * --------------------
+ * Find looks for the presence of a string in a circular buffer.
+ *  patchBuf: Pointer to the searched pattern.
+ *
+ *  returns: 0 if word is not found or pattern is too big.
+ *  		 1 if word is found
+ */
+uint8_t smgDma_Find(char* patchBuf){
+	uint16_t i = 0;
+	uint16_t j = 0;
+
+	for(i=0;i<sizeof(RING->buf);i++) //Go through the whole ring buffer looking for the first element of our pattern.
+	{
+		if(patchBuf[0] == RING->buf[i]) //FIXME : Instead of whole buf, check tail->head.
+		{	//Check the correspondence with the next characters of our pattern.
+			for(j = 0;j<sizeof(patchBuf);j++){
+				if(RING->buf[(i+j)%sizeof(RING->buf)] == patchBuf[j])
+				{	//The element is the same
+				}
+				else {
+					break;
+				}
+			}
+			if(sizeof(patchBuf) == j){
+				printf(" ADPS FOUND !\n");
+				return 1;
+			}
+		}
+		i++;
+	}
+
+	return 0;
 }
 

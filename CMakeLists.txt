@@ -2,10 +2,9 @@
 cmake_minimum_required(VERSION 3.12)
 
 set(PICO_TOOLCHAIN_PATH /home/cyp/tools/gcc-arm-none-eabi/)
-
 # Pull in SDK (must be before project)
 if(NOT DEFINED PICO_SDK_PATH)
-    set(PICO_SDK_PATH ${CMAKE_SOURCE_DIR}/libraries/pico-sdk)
+    set(PICO_SDK_PATH ${CMAKE_SOURCE_DIR}/third_party/pico-sdk)
     message(STATUS "PICO_SDK_PATH = ${PICO_SDK_PATH}")
 endif()
 
@@ -41,38 +40,25 @@ message(STATUS "WIZNET_CHIP = ${WIZNET_CHIP}")
 # the tests folder is included directly by a parent project, without including
 # the top level CMakeLists.txt.
 if(NOT DEFINED FREERTOS_DIR)
-    set(FREERTOS_DIR ${CMAKE_SOURCE_DIR}/libraries/FreeRTOS-Kernel)
+    set(FREERTOS_DIR ${CMAKE_SOURCE_DIR}/third_party/FreeRTOS-Kernel)
     message(STATUS "FREERTOS_DIR = ${FREERTOS_DIR}")
 endif()
 
 if(NOT DEFINED WIZNET_DIR)
-    set(WIZNET_DIR ${CMAKE_SOURCE_DIR}/libraries/io6Library)
+    set(WIZNET_DIR ${CMAKE_SOURCE_DIR}/third_party/io6Library)
     message(STATUS "WIZNET_DIR = ${WIZNET_DIR}")
-endif()
-
-if(NOT DEFINED MBEDTLS_DIR)
-    set(MBEDTLS_DIR ${CMAKE_SOURCE_DIR}/libraries/mbedtls)
-    message(STATUS "MBEDTLS_DIR = ${MBEDTLS_DIR}")
 endif()
 
 if(NOT DEFINED PORT_DIR)
     set(PORT_DIR ${CMAKE_SOURCE_DIR}/port)
     message(STATUS "PORT_DIR = ${PORT_DIR}")
 endif()
- 
-# Turn off mbedtls test mode 
-set(ENABLE_PROGRAMS OFF CACHE BOOL "Build mbedtls programs")
-set(ENABLE_TESTING OFF CACHE BOOL "Build mbedtls testing")
-add_definitions(-DMBEDTLS_CONFIG_FILE="${PORT_DIR}/mbedtls/inc/ssl_config.h")
-add_definitions(-DSET_TRUSTED_CERT_IN_SAMPLES)
 
 # Sources in subdirectories:
 add_subdirectory(src)
 
 # Add libraries in subdirectories
-add_subdirectory(${CMAKE_SOURCE_DIR}/libraries)
-add_subdirectory(${CMAKE_SOURCE_DIR}/lib)
-add_subdirectory(${MBEDTLS_DIR})
+add_subdirectory(${CMAKE_SOURCE_DIR}/third_party)
 add_subdirectory(${PORT_DIR})
 
 # Set compile options
