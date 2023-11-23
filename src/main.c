@@ -8,6 +8,7 @@
 #include "lib/smgUart/smgUart.h"
 #include "lib/smgDma/smgDma.h"
 #include "lib/smgNetwork/smgNetwork.h"
+#include "lib/smgIo/smgIo.h"
 
 #include <FreeRTOS.h>
 #include <task.h>
@@ -56,6 +57,9 @@ int main()
 	/* Declare & initialize program variables*/
 	struct ringBuf *pRING, RING;
 	pRING = &RING;
+
+	//Initialize IO
+	smgIo_Init();
 
 	//Initialize UART Communication through DMA
 	ticUart_Init(UART_ID, BAUD_RATE, DATA_BITS, STOP_BITS, PARITY, UART_TX_PIN, UART_RX_PIN);

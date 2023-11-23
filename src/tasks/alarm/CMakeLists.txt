@@ -11,4 +11,5 @@ target_link_libraries(alarm PRIVATE
         ticParser
         ticConstructor
         smgNetwork
+        smgIo
     )

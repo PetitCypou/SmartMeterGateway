@@ -5,8 +5,6 @@
  *  Created on: 3 nov. 2023
  *      Author: cyp
  */
-#define DEBUG
-
 #include "smgNetwork.h"
 
 #include <dhcpv4.h>
@@ -163,7 +161,6 @@ uint8_t smgNetwork_Init(uint32_t clkKhz){
 	uint8_t g_dhcp_get_ip_flag = 0;
 	/* Initialize Wiznet Chip */
 	set_clock_khz(clkKhz);
-	stdio_init_all();
 
 	sleep_ms(1000 * 2);
 

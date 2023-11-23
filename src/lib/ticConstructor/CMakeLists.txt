@@ -14,6 +14,4 @@ target_link_libraries(ticConstructor PRIVATE
     ETHERNET_FILES
     IOLIBRARY_FILES
     LOOPBACK_FILES
-    )   
-         
-include_directories(${CMAKE_SOURCE_DIR}/lib)
+    )

@@ -10,16 +10,11 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "lib/smgIo/smgIo.h"
 
 //FUNCTION PROTOTYPES
 uint8_t ticParse(struct ticFrame* TIC,char* pUartWord);
 uint8_t checkSum(char* word);
-void ticSetAlarm(void);
-uint8_t ticGetAlarm(void);
-
-uint8_t ALARM;
-uint8_t foundAlarm;
-
 /*
  * Function:  ticParse
  * --------------------
@@ -40,6 +35,7 @@ uint8_t ticParse(struct ticFrame* TIC,char* pUartWord){
 	//TODO : CHECK FOR SPECIAL CHARACTERS
 	char* toul;
 	static uint8_t frameHasStarted = 0;
+	static uint8_t foundAlarm = 0;
 
 	if(0x0A==pUartWord[0])//If the first character is a line feed, ignore it.
 	{
@@ -57,14 +53,13 @@ uint8_t ticParse(struct ticFrame* TIC,char* pUartWord){
 	{
 		foundAlarm = 0;
 		frameHasStarted = 1;
-
 	}
 	else if(0x03==pUartWord[0])				//Frame has ended !
 	{
 		if(frameHasStarted){ 		//If we were here from the beginning.
 			if(foundAlarm == 0){
 				TIC->ADPS = 0;
-				ALARM = 0;
+				smgIoSetAlarm(0);
 			}
 			frameHasStarted = 0;
 			return 2;				//Frame is valid
@@ -115,7 +110,7 @@ uint8_t ticParse(struct ticFrame* TIC,char* pUartWord){
 		}
 		else if(strstr(pUartWord,"ADPS") != NULL){
 			TIC->ADPS = atoi((pUartWord+5));
-			ALARM = 1;
+			smgIoSetAlarm(1);
 			foundAlarm = 1;
 		}
 
@@ -158,12 +153,4 @@ uint8_t checkSum(char* pUartWord){
 	else{
 		return 0;
 	}
-}
-
-void ticSetAlarm(void){
-	ALARM = 1;
-}
-
-uint8_t ticGetAlarm(void){
-	return ALARM;
 }

@@ -13,4 +13,5 @@ target_link_libraries(ticParser PRIVATE
     ETHERNET_FILES
     IOLIBRARY_FILES
     LOOPBACK_FILES
+    smgIo
     )

@@ -3,6 +3,8 @@
 #include <FreeRTOS.h>
 #include <task.h>
 
+#include <string.h>
+
 #include "lib/smgDma/smgDma.h"
 #include "lib/ticParser/ticParser.h"
 #include "lib/ticConstructor/ticConstructor.h"

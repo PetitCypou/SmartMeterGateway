@@ -8,6 +8,7 @@
 #include <FreeRTOS.h>
 #include <task.h>
 
+#include "lib/smgIo/smgIo.h"
 #include "lib/smgDma/smgDma.h"
 #include "lib/ticParser/ticParser.h"
 #include "lib/ticConstructor/ticConstructor.h"
@@ -38,12 +39,12 @@ void alarm_task(void *argument)
 	while(1)
 	{
 		vTaskDelay(40);// 4ms
-		if(smgDma_Find("ADPS")){	//Check for the alarm in the DMA ring buffer every 4ms.
-			ticSetAlarm();
-		}
-		if(ticGetAlarm()){ 			//While the alarm is active.
+		if(smgIoGetAlarm() != 0){ 			//While the alarm is active.
 			smgNetwork_Send(*ALARM_SOCKET,sendPort,destIp,destPort,"ALARM!\n");	//Report alarm to server.
 			vTaskDelay(2000);		//Cooldown on sending alarm packets. (200ms)
+		}
+		else if(smgDma_Find("ADPS")){	//Check for the alarm in the DMA ring buffer every 4ms.
+			smgIoSetAlarm(1);
 		}
 	}
 }

@@ -59,7 +59,5 @@ struct ticFrame {
 //FUNCTION PROTOTYPES
 uint8_t ticParse(struct ticFrame* TIC,char* pUartWord);
 uint8_t checkSum(char* word);
-void ticSetAlarm(void);
-uint8_t ticGetAlarm(void);
 
 #endif /* TICPARSER_H_ */

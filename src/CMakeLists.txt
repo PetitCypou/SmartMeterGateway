@@ -28,6 +28,7 @@ target_link_libraries(${TARGET_NAME} PRIVATE
         smgDma
         smgNetwork
         smgUart
+        smgIo
         ticConstructor
         ticParser
         webServer

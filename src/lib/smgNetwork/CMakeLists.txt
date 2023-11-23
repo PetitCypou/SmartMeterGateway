@@ -16,5 +16,3 @@ target_link_libraries(smgNetwork PRIVATE
         TIMER_FILES
         DNS_FILES
         )
-        
-include_directories(${CMAKE_SOURCE_DIR}/port)

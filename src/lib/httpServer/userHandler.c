@@ -9,7 +9,6 @@
  * \n\n @par Copyright (C) 1998 - 2014 WIZnet. All rights reserved.
  */
 
-#include <hardware/gpio.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,6 +17,8 @@
 #include "userHandler.h"
 //#include "adcHandler.h"
 #include "wizchip_conf.h"
+#include "lib/smgIo/smgIo.h"
+#include "hardware/gpio.h"
 
 // Data IO Status
 typedef enum
@@ -129,7 +130,7 @@ int8_t set_diostate(uint8_t * uri)
 	uint8_t * param;
 	uint8_t pin = 0, val = 0;
 
-	if((param = get_http_param_value((char *)uri, "pin"))) // GPIO; D0 ~ D15
+	if((param = get_http_param_value((char *)uri, "func"))) // GPIO; D0 ~ D15
 	{
 		pin = (uint8_t)ATOI(param, 10);
 		if(25 != pin) return -1; //Protect the pico.
@@ -139,12 +140,14 @@ int8_t set_diostate(uint8_t * uri)
 			val = (uint8_t)ATOI(param, 10);
 			if(val > On) val = On;
 		}
-		printf("set_diostate.cgi LED out pin[%d] \r\n", pin );
 
-		if(val == On) 		gpio_put(pin, 0);	// High
-		else				gpio_put(pin, 1);	// Low
-
+		if(val == On){
+			smgIoSetAlarm(1);
 		}
+		else{
+			smgIoSetAlarm(0);
+		}
+	}
 
 	return pin;
 }
