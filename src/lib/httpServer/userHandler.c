@@ -33,7 +33,6 @@ typedef enum
 void make_json_netinfo(uint8_t * buf, uint16_t * len);
 
 // Pre-defined Set CGI functions
-int8_t set_diodir(uint8_t * uri);
 int8_t set_diostate(uint8_t * uri);
 
 uint8_t predefined_get_cgi_processor(uint8_t * uri_name, uint8_t * buf, uint16_t * len)
@@ -51,6 +50,10 @@ uint8_t predefined_get_cgi_processor(uint8_t * uri_name, uint8_t * buf, uint16_t
 	else if(strcmp((const char *)uri_name, "get_netinfo.cgi") == 0)
 	{
 		make_json_netinfo(buf, len);
+	}
+	else if(strcmp((const char *)uri_name, "get_fwversion.cgi") == 0)
+	{
+		make_json_fwversion(buf, len);
 	}
 	else
 	{
@@ -84,6 +87,13 @@ uint8_t predefined_set_cgi_processor(uint8_t * uri_name, uint8_t * uri, uint8_t 
 
 	return ret;
 }
+
+void make_json_fwversion(uint * buf,uint16_t * len){
+	// DHCP: 1 - Static, 2 - DHCP
+		*len = sprintf((char *)buf, "FwVersionCallback({\"version\":\"%c\"});",
+												smgGetBoot()
+												);
+	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Pre-defined Get CGI functions

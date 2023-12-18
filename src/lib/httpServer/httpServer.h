@@ -96,7 +96,8 @@ void reg_httpServer_webContent(uint8_t * content_name, uint8_t * content);
 uint8_t find_userReg_webContent(uint8_t * content_name, uint16_t * content_num, uint32_t * file_len);
 uint16_t read_userReg_webContent(uint16_t content_num, uint8_t * buf, uint32_t offset, uint16_t size);
 uint8_t display_reg_webContent_list(void);
-
+uint8_t* findBoundary(uint8_t* haystack,uint16_t size);
+uint8_t storeFirmware(uint8_t* buf, uint32_t fwSize, char boundary[256], uint8_t socket);
 /*
  * @brief HTTP Server 1sec Tick Timer handler
  * @note SHOULD BE register to your system 1s Tick timer handler

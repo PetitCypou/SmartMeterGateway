@@ -11,5 +11,7 @@ target_link_libraries(httpServer PRIVATE
     hardware_gpio
     ETHERNET_FILES
     LOOPBACK_FILES
+    FREERTOS_FILES
     smgIo
+    smgBoot
     )

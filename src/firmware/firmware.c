@@ -3,22 +3,23 @@
  * Includes
  * ----------------------------------------------------------------------------------------------------
  */
+
 #include <port_common.h>
 
 #include "lib/smgUart/smgUart.h"
 #include "lib/smgDma/smgDma.h"
 #include "lib/smgNetwork/smgNetwork.h"
 #include "lib/smgIo/smgIo.h"
+#include "lib/sha1/sha1.h"
 
 #include <FreeRTOS.h>
 #include <task.h>
 
+#include "pico/multicore.h"
+
 #include "tasks/webServer/webServer.h"
 #include "tasks/logger/logger.h"
 #include "tasks/alarm/alarm.h"
-
-
-
 /* FreeRTOS Tasks*/
 #define LOGGER_TASK_STACK_SIZE 2048
 #define LOGGER_TASK_PRIORITY 8
@@ -26,6 +27,8 @@
 #define ALARM_TASK_PRIORITY 10
 #define HTTP_TASK_STACK_SIZE 2048
 #define HTTP_TASK_PRIORITY 6
+#define FOTA_TASK_STACK_SIZE 2048
+#define FOTA_TASK_PRIORITY 6
 
 /* System clock */
 #define PLL_SYS_KHZ (133 * 1000)
@@ -35,7 +38,7 @@
 #define BAUD_RATE 1200
 #define DATA_BITS 7
 #define STOP_BITS 1
-#define PARITY UART_PARITY_EVEN
+#define PARITY 1 //EVEN
 #define UART_TX_PIN 0
 #define UART_RX_PIN 1
 
@@ -43,14 +46,23 @@
 const uint8_t LOG_SOCKET = 2;
 const uint8_t ALARM_SOCKET = 1;
 
-
 /**
  * ----------------------------------------------------------------------------------------------------
  * Main
  * ----------------------------------------------------------------------------------------------------
  */
-int main()
+void main(void)
 {
+	const uint LED_PIN = PICO_DEFAULT_LED_PIN;
+	gpio_init(LED_PIN);
+	gpio_set_dir(LED_PIN, GPIO_OUT);
+	gpio_put(LED_PIN, 1);
+	sleep_ms(250);
+	gpio_put(LED_PIN, 0);
+	sleep_ms(250);
+
+	multicore_reset_core1();
+
 	/* Init IO for verbose debugging */
 	stdio_init_all();
 

@@ -21,6 +21,7 @@ extern "C" {
 #define		METHOD_GET		1		/**< GET Method.   */
 #define		METHOD_HEAD		2		/**< HEAD Method.  */
 #define		METHOD_POST		3		/**< POST Method.  */
+#define		METHOD_KIT		4		/**< ------WebkitForm Method.  */
 
 /* HTTP GET Method */
 #define		PTYPE_ERR		0		/**< Error file. */
@@ -38,6 +39,7 @@ extern "C" {
 #define		PTYPE_JSON		12		/**< JSON (JavaScript Standard Object Notation) file.	*/
 #define		PTYPE_PNG		13		/**< PNG file. 	*/
 #define		PTYPE_ICO		14		/**< ICON file. */
+#define 	PTYPE_BIN       15		/**< Custom binary file. */
 
 #define		PTYPE_TTF		20		/**< Font type: TTF file. */
 #define		PTYPE_OTF		21		/**< Font type: OTF file. */
@@ -51,6 +53,7 @@ extern "C" {
 #define		STATUS_CREATED		201
 #define		STATUS_ACCEPTED		202
 #define		STATUS_NO_CONTENT	204
+#define		STATUS_BIN			100
 #define		STATUS_MV_PERM		301
 #define		STATUS_MV_TEMP		302
 #define		STATUS_NOT_MODIF	304
@@ -121,18 +124,19 @@ static const char 	ERROR_REQUEST_PAGE[] = "HTTP/1.1 400 OK\r\nContent-Type: text
 /* Response head for SVG, Font */
 #define RES_SVGHEAD_OK	"HTTP/1.1 200 OK\r\nContent-Type: image/svg+xml\r\nContent-Length: "
 
+#define RES_BINHEAD	"HTTP/1.1 200 OK\r\nContent-Type: bin\r\nContent-Length: "
 /**
  @brief 	Structure of HTTP REQUEST 
  */
-
-//#define MAX_URI_SIZE	1461
-#define MAX_URI_SIZE	512
+#define MAX_URI_SIZE	1461
+//#define MAX_URI_SIZE	512
 
 typedef struct _st_http_request
 {
 	uint8_t	METHOD;						/**< request method(METHOD_GET...). */
 	uint8_t	TYPE;						/**< request type(PTYPE_HTML...).   */
 	uint8_t	URI[MAX_URI_SIZE];			/**< request file name.             */
+	uint8_t	MEM[4096-MAX_URI_SIZE-2];			/**< request file name.             */
 }st_http_request;
 
 // HTTP Parsing functions
@@ -147,7 +151,7 @@ uint8_t * get_http_uri_name(uint8_t * uri);
 #endif
 
 // Utility functions
-uint16_t ATOI(uint8_t * str, uint8_t base);
+uint32_t ATOI(uint8_t * str, uint8_t base);
 void mid(char* src, char* s1, char* s2, char* sub);
 void inet_addr_(uint8_t * addr, uint8_t * ip);
 

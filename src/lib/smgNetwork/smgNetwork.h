@@ -17,6 +17,7 @@
 
 //FUNCTION PROTOTYPES
 uint8_t smgNetwork_Init(uint32_t clkKhz);
+void smgNetwork_DeInit(void);
 uint8_t smgNetwork_Connect(uint8_t sn, uint16_t sendPort, uint8_t* destIp, uint16_t destPort);
 int8_t smgNetwork_Send(uint8_t sn, uint16_t sendPort, uint8_t* destIp, uint16_t destPort,char* buf);
 

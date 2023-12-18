@@ -69,6 +69,7 @@ void make_http_response_head(
 	else if (type == PTYPE_WOFF)	head = RES_WOFFHEAD_OK;
 	else if (type == PTYPE_EOT)		head = RES_EOTHEAD_OK;
 	else if (type == PTYPE_SVG)		head = RES_SVGHEAD_OK;
+	else if (type == PTYPE_BIN)		head = RES_BINHEAD;
 #ifdef _HTTPPARSER_DEBUG_
 	else
 	{
@@ -117,6 +118,7 @@ void find_http_uri_type(
 	else if (strstr(buf, ".woff") 	|| strstr(buf,".WOFF"))	*type = PTYPE_WOFF;
 	else if (strstr(buf, ".eot") 	|| strstr(buf,".EOT"))	*type = PTYPE_EOT;
 	else if (strstr(buf, ".svg") 	|| strstr(buf,".SVG"))	*type = PTYPE_SVG;
+	else if (strstr(buf, ".bin") 	|| strstr(buf,".BIN"))	*type = PTYPE_BIN;
 	else 													*type = PTYPE_ERR;
 }
 
@@ -203,7 +205,6 @@ uint8_t * get_http_param_value(
  */
 uint8_t * get_http_param_value(char* uri, char* param_name)
 {
-
 	uint8_t * name = 0;
 	uint8_t * ret = BUFPUB;
 	uint8_t * pos2;
@@ -324,7 +325,7 @@ void inet_addr_(uint8_t * addr, uint8_t *ip)
 @brief	CONVERT STRING INTO INTEGER
 @return	a integer number
 */
-uint16_t ATOI(
+uint32_t ATOI(
 	uint8_t * str,	/**< is a pointer to convert */
 	uint8_t base	/**< is a base value (must be in the range 2 - 16) */
 	)

@@ -69,6 +69,7 @@ static wiz_NetInfo netInfo =
 
 //FUNCTION PROTOTYPES
 uint8_t smgNetwork_Init(uint32_t clkKhz);
+void smgNetwork_DeInit(void);
 uint8_t smgNetwork_Connect(uint8_t sn, uint16_t sendPort, uint8_t* destIp, uint16_t destPort);
 int8_t smgNetwork_Send(uint8_t sn, uint16_t sendPort, uint8_t* destIp, uint16_t destPort,char* buf);
 
@@ -162,7 +163,7 @@ uint8_t smgNetwork_Init(uint32_t clkKhz){
 	/* Initialize Wiznet Chip */
 	set_clock_khz(clkKhz);
 
-	sleep_ms(1000 * 2);
+	//sleep_ms(1000 * 2);
 
 	wizchip_spi_initialize();
 	wizchip_cris_initialize();
@@ -217,6 +218,7 @@ uint8_t smgNetwork_Init(uint32_t clkKhz){
 			if(g_dhcp_get_ip_flag == 0)
 			{
 				wizchip_delay_ms(1000); // wait for 1 second
+				//FIXME : NO DHCP ANSWER LEADS TO INFINITE WAITING, retval = DHCP_RUNNING ?
 			}
 		}
 	}
@@ -231,7 +233,9 @@ uint8_t smgNetwork_Init(uint32_t clkKhz){
 	}
 }
 
-
+void smgNetwork_DeInit(void){
+	wizchip_reset();
+}
 
 /*
  * Function:  smgNetwork_Send

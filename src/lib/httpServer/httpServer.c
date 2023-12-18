@@ -8,6 +8,11 @@
 #include "httpServer.h"
 #include "httpParser.h"
 #include "httpUtil.h"
+#include "lib/smgBoot/smgBoot.h"
+
+#include <hardware/sync.h>
+#include <FreeRTOS.h>
+#include <task.h>
 
 #ifdef	_USE_SDCARD_
 #include "ff.h" 	// header file for FatFs library (FAT file system)
@@ -35,6 +40,7 @@ static uint16_t total_content_cnt = 0;
  ****************************************************************************/
 uint8_t * pHTTP_TX;
 uint8_t * pHTTP_RX;
+uint16_t frameLen=0;
 
 volatile uint32_t httpServer_tick_1s = 0;
 st_http_socket HTTPSock_Status[_WIZCHIP_SOCK_NUM_] = { {STATE_HTTP_IDLE, }, };
@@ -57,7 +63,8 @@ static void http_process_handler(uint8_t s, st_http_request * p_http_request);
 static void send_http_response_header(uint8_t s, uint8_t content_type, uint32_t body_len, uint16_t http_status);
 static void send_http_response_body(uint8_t s, uint8_t * uri_name, uint8_t * buf, uint32_t start_addr, uint32_t file_len);
 static void send_http_response_cgi(uint8_t s, uint8_t * buf, uint8_t * http_body, uint16_t file_len);
-
+uint8_t* findBoundary(uint8_t* haystack,uint16_t size);
+uint8_t storeFirmware(uint8_t* buf, uint32_t fwSize, char boundary[256], uint8_t socket);
 /*****************************************************************************
  * Public functions
  ****************************************************************************/
@@ -163,6 +170,7 @@ void httpServer_run(uint8_t seqnum)
 #ifdef _HTTPSERVER_DEBUG_
 						printf("> HTTPSocket[%d] : [State] STATE_HTTP_REQ_DONE\r\n", s);
 #endif
+						frameLen=len;
 						// HTTP 'response' handler; includes send_http_response_header / body function
 						http_process_handler(s, parsed_http_request);
 
@@ -281,6 +289,24 @@ static void send_http_response_header(uint8_t s, uint8_t content_type, uint32_t 
 				// CGI/XML type request does not respond HTTP header to client
 				http_status = 0;
 			}
+			break;
+		case STATUS_BIN:
+			if(content_type == PTYPE_BIN)
+					{
+		#ifdef _HTTPSERVER_DEBUG_
+					printf("> HTTPSocket[%d] : HTTP Response Header for BIN firmware \r\n", s);
+		#endif
+						make_http_response_head((char*)http_response, content_type, body_len);
+					}
+					else
+					{
+		#ifdef _HTTPSERVER_DEBUG_
+					printf("> HTTPSocket[%d] : HTTP Response Header - NONE / CGI or XML\r\n", s);
+		#endif
+						// CGI/XML type request does not respond HTTP header to client
+						http_status = 0;
+					}
+			make_http_response_head((char*)http_response, content_type, body_len);
 			break;
 		case STATUS_BAD_REQ: 	// HTTP/1.1 400 OK
 #ifdef _HTTPSERVER_DEBUG_
@@ -637,9 +663,51 @@ static void http_process_handler(uint8_t s, st_http_request * p_http_request)
 					send_http_response_header(s, PTYPE_CGI, 0, STATUS_NOT_FOUND);
 				}
 			}
+			else if(p_http_request->TYPE == PTYPE_HTML)	// HTTP POST Method;
+			{
+#ifdef _HTTPSERVER_DEBUG_
+				printf("\r\nHTTPSocket[%d] : HTTP Method POST, bin transfer\r\n", s);
+#endif
+				if(strstr(p_http_request->URI,"fwupload.html")!=NULL)//If post comes from Custom BIN transfer process from scratch.
+				{
+					uint8_t tmp_buf[10]={0x00, };
+
+					char boundary[256];
+					boundary[0]='-';
+					boundary[1]='-';
+
+					//Find out what the file length is.
+					mid(p_http_request->URI, "Content-Length: ", "\r\n", (char *)tmp_buf);
+					//Find out what the boundary looks like.
+					mid(p_http_request->URI, "boundary=", "\r\n", (char *)boundary+2);
+					uint32_t fwSize = ATOI(tmp_buf, 10);
+					if(storeFirmware((uint8_t*)http_request,fwSize,boundary, s) && find_userReg_webContent("fwupload.html", &content_num, &file_len)){
+							content_found = 1; // Web content found in code flash memory
+							content_addr = (uint32_t)content_num;
+							HTTPSock_Status[get_seqnum].storage_type = CODEFLASH;
+						}
+					else if(find_userReg_webContent("fwfailed.html", &content_num, &file_len))
+					{
+						content_found = 1; // Web content found in code flash memory
+						content_addr = (uint32_t)content_num;
+						HTTPSock_Status[get_seqnum].storage_type = CODEFLASH;
+					}
+						if(content_found){
+							http_status = STATUS_OK;
+						}
+							// Send HTTP header
+						if(http_status){
+							send_http_response_header(s, p_http_request->TYPE, file_len, http_status);
+						}
+							// Send HTTP body (content)
+						if(http_status == STATUS_OK){
+							send_http_response_body(s, uri_name, http_response, content_addr, file_len);
+						}
+				}
+			}
 			else	// HTTP POST Method; Content not found
 			{
-				send_http_response_header(s, 0, 0, STATUS_NOT_FOUND);
+				send_http_response_header(s, PTYPE_HTML, 0, STATUS_NO_CONTENT);
 			}
 			break;
 
@@ -649,6 +717,7 @@ static void http_process_handler(uint8_t s, st_http_request * p_http_request)
 			break;
 	}
 }
+
 
 void httpServer_time_handler(void)
 {
@@ -749,3 +818,55 @@ uint16_t read_userReg_webContent(uint16_t content_num, uint8_t * buf, uint32_t o
 	ret = strlen((void *)buf);
 	return ret;
 }
+
+uint8_t storeFirmware(uint8_t* buf, uint32_t fwSize, char* boundary, uint8_t socket){
+
+	uint32_t storedSize=0;	//Amount of data already written at any given point.
+	uint32_t dataSize=0;	//Calculated size of data field in URI.
+	uint16_t boundarySize;
+	uint8_t* dataField=NULL;	//Address of the start of the actual data. Data field includes HTTP "--" boundary.
+	uint8_t* fwField=NULL;
+    uint8_t* shaField=NULL;
+    char sha[41];
+
+	while(frameLen<DATA_BUF_SIZE){//Make sure we do get the start of our firmware code in the first window.
+		frameLen+= recv(socket, buf+frameLen, DATA_BUF_SIZE-frameLen); //Dump and receive some more data
+	}
+	boundarySize=strlen(boundary)+2+4;//+2 :There is an added "\r\n" that we have to take into account. +4 :The other boundaries will have "\r\n"s and added "--"s.
+	dataField = strstr(buf+5,boundary);//+5 -> Negate the null terminating caracter of "POST\0";
+
+	if(NULL == dataField) //Don't know what we received but it wasn't the right POST request.
+	{
+		return 0;
+	}
+
+	//shaField = strstr(dataField,"\r\n")+2;
+	shaField = strstr(dataField,"\r\n\r\n")+4;
+	memcpy(sha,shaField,40);
+	sha[40]=0;
+	fwField = shaField+40;	//Firmware is right after SHA field.
+
+	dataSize=frameLen-(fwField-buf);
+	fwSize-=(fwField-dataField)+boundarySize;
+	smgStoreFirmware(fwField,dataSize,storedSize);
+	storedSize+=dataSize;
+
+	//After first frame, the others contain only fw data.
+	while(storedSize<fwSize){
+		if(fwSize-storedSize+boundarySize>DATA_BUF_SIZE)
+		{
+			dataSize= recv(socket, buf, DATA_BUF_SIZE); //Receive some more data
+		}
+		else
+		{
+			dataSize= recv(socket, buf, fwSize-storedSize+boundarySize); //Receive some more data
+			dataSize -= boundarySize; //Receive the boundary to free the window, but don't take it into account.
+		}
+		smgStoreFirmware(buf,dataSize,storedSize);
+		storedSize+=dataSize;
+	}
+	smgStoreFirmware(buf,0,storedSize);
+
+	return smgSwitchBoot(sha,fwSize);
+}
+

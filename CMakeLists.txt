@@ -8,10 +8,15 @@ if(NOT DEFINED PICO_SDK_PATH)
     message(STATUS "PICO_SDK_PATH = ${PICO_SDK_PATH}")
 endif()
 
+#set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+#SET_PROPERTY(GLOBAL PROPERTY TARGET_SUPPORTS_SHARED_LIBS TRUE)
 
-include(rp2040_v6_hat_c-patch.cmake)
+#include(rp2040_v6_hat_c-patch.cmake)
 include(pico_sdk_import.cmake)
 include(rp2040_v6_hat_c_sdk_version.cmake)
+
+include_directories(${CMAKE_SOURCE_DIR}/src)
+include_directories(${CMAKE_SOURCE_DIR}/port)
 
 # Set project name
 set(PROJECT_NAME RP2040-v6-HAT-C)
@@ -47,6 +52,11 @@ endif()
 if(NOT DEFINED WIZNET_DIR)
     set(WIZNET_DIR ${CMAKE_SOURCE_DIR}/third_party/io6Library)
     message(STATUS "WIZNET_DIR = ${WIZNET_DIR}")
+endif()
+
+if(NOT DEFINED SHA_DIR)
+    set(SHA_DIR ${CMAKE_SOURCE_DIR}/third_party/sha1)
+    message(STATUS "SHA_DIR = ${SHA_DIR}")
 endif()
 
 if(NOT DEFINED PORT_DIR)
