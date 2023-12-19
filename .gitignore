@@ -1,0 +1,6 @@
+*.cproject
+*.project
+*.settings
+/_build/
+*CMakeFiles*
+
