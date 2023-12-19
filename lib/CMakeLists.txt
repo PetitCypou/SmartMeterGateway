@@ -1,0 +1,5 @@
+add_subdirectory(ticParser)
+add_subdirectory(aegNetwork)
+add_subdirectory(ticConstructor)
+add_subdirectory(aegUart)
+add_subdirectory(aegDma)
