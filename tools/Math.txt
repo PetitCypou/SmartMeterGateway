@@ -1,0 +1,27 @@
+TIC :  Train d’onde 50kHz d’amplitude 2.5V.
+Un bit émis à "0" correspond à la présence de porteuse pendant le temps correspondant. - un bit émis à "1" correspond à l'absence de porteuse.
+
+Mon câblage optocoupleur doit avoir :
+Un comportement redresseur, une résistance parallèle comprise entre 750 et 5000 ohms (500 et 2000 ohms pour les linkys)
+Une impédance capacitive parallèle supérieure à > 10 000 ohms.
+@50 kHz, Input capacitance Cin <= 318 pF
+Une capacitance mode commun < 15 pF. (Pas le cas puisqu’isolé ?)
+Protection contre parasites dépassant les 2.5V, jusqu’à 25V.
+Protection contre câblage accidentel en 230v ?
+Zc = 1/jwC   Pour 50pF = 63661 Ohms.
+
+Filtre 10k : 10000 = 1/2PI*RC
+@2mA and 25°C, Vf = 1.05V
+2.5V-1.05 = 1.45V / 0.002 = 725 Ohm -> 750 Par norme (Si le circuit pète « optocoupleur court-circuité » il faut que l’impédance reste supérieure au minimum qui est de 750 Ohms).
+
+62831.8 = 1/RC
+RC = 1/62831.8 = 1.59155*10^-5
+R théorique de 10000  -> 1.59155*10^-9
+@2.5V,   Iin : 0.5 mA <-> 3.3 mA
+
+Temps de détection de "ADP" : 
+@1200 bauds / seconde = 1 charactère en 0.833 ms ;
+Temps max de lecture = 3/1200 = 2.5 ms
+@133 Mhz 2.5 ms = 332500 cycles d’horloge /4 = 83125
+FreeRTOS default tick rate is 1 ms so a bit short. This rask would consume about a third of cpu time.
+Either we consider max read time can be a bit higher,  either we up the tick rate at the expense of higher kernel time.

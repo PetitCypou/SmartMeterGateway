@@ -1,0 +1,50 @@
+graph G {
+  label="Embedded information processing"
+  labelloc="t"
+  layout=dot
+  rankdir="LR"
+
+  BOARD[label="CIRCUIT BOARD" shape = "Mdiamond"];
+  SERVER1[label="DATABASE" shape = "Msquare"];
+  SERVER2[label="ALARM MONITOR" shape = "Msquare"];
+  USER[shape = "Mdiamond"];
+
+
+  subgraph cluster_0 {
+    node [style=filled shape=box fontname="helvetica"];
+    label = "Pico Processing";
+    color=blue;
+  UART_ACQUISITION[label="UART ACQUISITION"];
+  IO_MANAGER[label="I/O MANAGER"];
+  FRAME1[label="FRAME CONSTRUCTOR"];
+  FRAME2[label="ALARM FRAME CONSTRUCTOR"];
+  CYPHER1[label="CYPHER"];
+  CYPHER2[label="CYPHER"];
+  CYPHER3[label="CYPHER SSL"];
+  SOCK1[label="TCP|UDP SOCKET"];
+  SOCK2[label="TCP|UDP SOCKET"];
+  SOCK3[label="TCP SOCKET"];
+
+  HTMLSERVER[label="HTML SERVER"];
+
+  UART_ACQUISITION -- PARSER[label="UART FRAME"];
+  PARSER -- IO_MANAGER;
+  PARSER -- FRAME1[label="VARIABLE"];
+  PARSER -- FRAME2;
+  FRAME1 -- CYPHER1[label="FRAME"];
+  FRAME2 -- CYPHER2[label="FRAME"];
+  CYPHER1 -- SOCK1;
+  CYPHER2 -- SOCK2;
+
+  SOCK3 -- CYPHER3[label="GIBBERISH"];
+  CYPHER3 -- HTMLSERVER[label="HTTP"];
+  HTMLSERVER-- {CONFIG IO_MANAGER};
+  CONFIG -- HTMLSERVER;
+  CONFIG -- {SOCK1 SOCK2};
+
+  }
+  BOARD-- UART_ACQUISITION[label="UART FRAME"];
+  SOCK1 -- SERVER1;
+  SOCK2 -- SERVER2;
+  USER -- SOCK3;
+}
